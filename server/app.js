@@ -3,9 +3,13 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const morgan = require("morgan");
-
+const busRoutes = require("./routes/busRoutes");
+const routeRoutes = require("./routes/routeRoutes");
+const scheduleRoutes = require("./routes/scheduleRoutes");
 const authRoutes = require("./routes/authRoutes");
 const errorHandler = require("./middleware/errorMiddleware");
+const bookingRoutes = require("./routes/bookingRoutes");
+const searchRoutes = require("./routes/searchRoutes");
 
 const app = express();
 
@@ -29,6 +33,11 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/buses", busRoutes);
+app.use("/api/routes", routeRoutes);
+app.use("/api/schedules", scheduleRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/search", searchRoutes);
 
 app.use(errorHandler);
 
