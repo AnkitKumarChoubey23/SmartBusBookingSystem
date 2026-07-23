@@ -68,25 +68,3 @@ exports.deleteSchedule = asyncHandler(async (req, res) => {
     new ApiResponse(true, "Schedule deleted successfully")
   );
 });
-
-exports.getScheduleById = asyncHandler(async (req, res) => {
-
-  const schedule = await Schedule.findById(req.params.id)
-    .populate("bus")
-    .populate("route");
-
-  if (!schedule) {
-    return res.status(404).json(
-      new ApiResponse(false, "Schedule not found")
-    );
-  }
-
-  res.json(
-    new ApiResponse(
-      true,
-      "Schedule fetched successfully",
-      schedule
-    )
-  );
-
-});

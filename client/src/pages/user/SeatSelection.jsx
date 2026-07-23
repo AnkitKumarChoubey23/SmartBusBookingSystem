@@ -14,7 +14,7 @@ const SeatSelection = () => {
 
     fetchSchedule();
 
-  }, []);
+  }, [id]);
 
   const fetchSchedule = async () => {
 
