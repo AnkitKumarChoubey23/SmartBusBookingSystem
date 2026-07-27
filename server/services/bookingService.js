@@ -1,5 +1,9 @@
 const Booking = require("../models/Booking");
 const Schedule = require("../models/Schedule");
+const {
+  sendBookingEmail,
+} = require("../utils/emailSender");
+const generateTicketPDF = require("../utils/pdfGenerator");
 
 exports.bookSeats = async (userId, data) => {
   const { scheduleId, seats } = data;
@@ -35,32 +39,92 @@ exports.bookSeats = async (userId, data) => {
 
   await schedule.save();
 
-  return Booking.create({
+  const booking = await Booking.create({
     user: userId,
     schedule: scheduleId,
     seats,
     totalFare: schedule.fare * seats.length,
     bookingStatus: "Confirmed",
     paymentStatus: "Paid",
+ });
+
+const populatedBooking = await Booking.findById(booking._id)
+  .populate("user")
+  .populate({
+    path: "schedule",
+    populate: [
+      {
+        path: "bus",
+      },
+      {
+        path: "route",
+      },
+    ],
   });
+
+const pdfPath =
+  await generateTicketPDF(populatedBooking);
+
+try {
+  await sendBookingEmail(
+    populatedBooking,
+    pdfPath
+  );
+} catch (err) {
+  console.error(
+    "Booking email failed:",
+    err.message
+  );
+}
+
+return populatedBooking;
 };
 
 // NEW METHODS
 
 exports.getMyBookings = (userId) =>
   Booking.find({ user: userId })
-    .populate("schedule")
+    .populate({
+      path: "schedule",
+      populate: [
+        {
+          path: "bus",
+        },
+        {
+          path: "route",
+        },
+      ],
+    })
     .sort({ createdAt: -1 });
-
 exports.getBookingById = (bookingId) =>
   Booking.findById(bookingId)
-    .populate("user", "name email")
-    .populate("schedule");
+   .populate("user", "firstName lastName email")
+    .populate({
+      path: "schedule",
+      populate: [
+        {
+          path: "bus",
+        },
+        {
+          path: "route",
+        },
+      ],
+    });
 
 exports.getAllBookings = () =>
   Booking.find()
-    .populate("user", "name email")
-    .populate("schedule")
+   .populate("user", "firstName lastName email")
+    .populate({
+      path: "schedule",
+      populate: [
+        {
+          path: "bus",
+        },
+        {
+          path: "route",
+        },
+      ],
+    })
     .sort({ createdAt: -1 });
 
 exports.cancelBooking = async (bookingId) => {
@@ -97,3 +161,4 @@ exports.cancelBooking = async (bookingId) => {
 
   return booking;
 };
+

@@ -4,7 +4,10 @@ const router = express.Router();
 
 const {
   searchBuses,
+  getSearchOptions,
 } = require("../controllers/searchController");
+
+router.get("/options", getSearchOptions);
 
 router.get("/", searchBuses);
 

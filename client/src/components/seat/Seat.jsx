@@ -1,49 +1,46 @@
-import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardActionArea from "@mui/material/CardActionArea";
+import Typography from "@mui/material/Typography";
 
 const Seat = ({ seat, selected, onSelect }) => {
-
   let background = "#ffffff";
+  let color = "#000000";
 
   if (seat.isBooked) {
-
     background = "#ef5350";
-
+    color = "#ffffff";
   } else if (selected) {
-
-    background = "#66bb6a";
-
+    background = "#4caf50";
+    color = "#ffffff";
   }
 
   return (
-
-    <Button
-
-      variant="outlined"
-
-      disabled={seat.isBooked}
-
-      onClick={() => onSelect(seat)}
-
+    <Card
       sx={{
-        width: 70,
-        height: 60,
         backgroundColor: background,
-        color: "#000",
-        borderColor: "#999",
-        fontWeight: "bold",
-        "&:hover": {
-          backgroundColor: background,
-        },
+        transition: "0.3s",
+        borderRadius: 2,
       }}
-
     >
-
-      {seat.seatNumber}
-
-    </Button>
-
+      <CardActionArea
+        disabled={seat.isBooked}
+        onClick={() => onSelect(seat)}
+        sx={{
+          height: 65,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Typography
+          fontWeight="bold"
+          color={color}
+        >
+          {seat.seatNumber}
+        </Typography>
+      </CardActionArea>
+    </Card>
   );
-
 };
 
 export default Seat;

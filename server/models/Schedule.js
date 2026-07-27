@@ -41,6 +41,15 @@ const scheduleSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    departureTime: {
+  type: String,
+  required: true,
+},
+
+arrivalTime: {
+  type: String,
+  required: true,
+},
 
     arrivalDate: {
       type: Date,

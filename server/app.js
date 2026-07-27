@@ -10,6 +10,9 @@ const authRoutes = require("./routes/authRoutes");
 const errorHandler = require("./middleware/errorMiddleware");
 const bookingRoutes = require("./routes/bookingRoutes");
 const searchRoutes = require("./routes/searchRoutes");
+const pdfRoutes = require("./routes/pdfRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
@@ -38,6 +41,9 @@ app.use("/api/routes", routeRoutes);
 app.use("/api/schedules", scheduleRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/pdf", pdfRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/users", userRoutes);
 
 app.use(errorHandler);
 
