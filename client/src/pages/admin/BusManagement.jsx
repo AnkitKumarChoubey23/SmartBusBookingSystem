@@ -9,71 +9,107 @@ import {
   Typography,
 } from "@mui/material";
 
+import AddIcon from "@mui/icons-material/Add";
+
 import { toast } from "react-toastify";
 
 import AdminLayout from "../../components/admin/AdminLayout";
 
 import {
-  getAllBookings,
-  cancelBooking,
-} from "../../services/bookingService";
+  getAllBuses,
+  createBus,
+  updateBus,
+  deleteBus,
+} from "../../services/busService";
 
-import BookingTable from "../../components/admin/booking/BookingTable";
-import BookingDetailsDialog from "../../components/admin/booking/BookingDetailsDialog";
+import BusTable from "../../components/admin/bus/BusTable";
+import BusFormDialog from "../../components/admin/bus/BusFormDialog";
+import DeleteBusDialog from "../../components/admin/bus/DeleteBusDialog";
 
-const BookingManagement = () => {
-  const [bookings, setBookings] = useState([]);
+const BusManagement = () => {
+  const [buses, setBuses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [detailsOpen, setDetailsOpen] =
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingBus, setEditingBus] = useState(null);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] =
     useState(false);
 
-  const [selectedBooking, setSelectedBooking] =
+  const [selectedBus, setSelectedBus] =
     useState(null);
 
   useEffect(() => {
-    fetchBookings();
+    fetchBuses();
   }, []);
 
-  const fetchBookings = async () => {
+  const fetchBuses = async () => {
     try {
       setLoading(true);
 
-      const res = await getAllBookings();
+      const res = await getAllBuses();
 
-      setBookings(res.data);
+      setBuses(res.data);
     } catch (err) {
       console.error(err);
 
-      toast.error("Unable to fetch bookings");
+      toast.error("Unable to fetch buses");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancelBooking = async (
-    booking
-  ) => {
-    const confirm = window.confirm(
-      "Cancel this booking?"
-    );
-
-    if (!confirm) return;
-
+  const handleSave = async (data) => {
     try {
-      await cancelBooking(booking._id);
+      if (editingBus) {
+        await updateBus(
+          editingBus._id,
+          data
+        );
 
-      toast.success(
-        "Booking cancelled successfully"
-      );
+        toast.success(
+          "Bus updated successfully"
+        );
+      } else {
+        await createBus(data);
 
-      fetchBookings();
+        toast.success(
+          "Bus created successfully"
+        );
+      }
+
+      setDialogOpen(false);
+      setEditingBus(null);
+
+      fetchBuses();
     } catch (err) {
       console.error(err);
 
       toast.error(
         err.response?.data?.message ||
-          "Cancellation failed"
+          "Operation failed"
+      );
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteBus(selectedBus._id);
+
+      toast.success(
+        "Bus deleted successfully"
+      );
+
+      setDeleteDialogOpen(false);
+      setSelectedBus(null);
+
+      fetchBuses();
+    } catch (err) {
+      console.error(err);
+
+      toast.error(
+        err.response?.data?.message ||
+          "Delete failed"
       );
     }
   };
@@ -104,32 +140,51 @@ const BookingManagement = () => {
             variant="h4"
             fontWeight="bold"
           >
-            Booking Management
+            Bus Management
           </Typography>
 
-          <Typography
-            color="text.secondary"
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setEditingBus(null);
+              setDialogOpen(true);
+            }}
           >
-            Total Bookings : {bookings.length}
-          </Typography>
+            Add Bus
+          </Button>
         </Stack>
 
-        <BookingTable
-          bookings={bookings}
-          onView={(booking) => {
-            setSelectedBooking(booking);
-            setDetailsOpen(true);
+        <BusTable
+          buses={buses}
+          onEdit={(bus) => {
+            setEditingBus(bus);
+            setDialogOpen(true);
           }}
-          onCancel={handleCancelBooking}
+          onDelete={(bus) => {
+            setSelectedBus(bus);
+            setDeleteDialogOpen(true);
+          }}
         />
 
-        <BookingDetailsDialog
-          open={detailsOpen}
-          booking={selectedBooking}
+        <BusFormDialog
+          open={dialogOpen}
+          editingBus={editingBus}
           onClose={() => {
-            setDetailsOpen(false);
-            setSelectedBooking(null);
+            setDialogOpen(false);
+            setEditingBus(null);
           }}
+          onSave={handleSave}
+        />
+
+        <DeleteBusDialog
+          open={deleteDialogOpen}
+          bus={selectedBus}
+          onClose={() => {
+            setDeleteDialogOpen(false);
+            setSelectedBus(null);
+          }}
+          onConfirm={handleDelete}
         />
 
       </Container>
@@ -137,4 +192,4 @@ const BookingManagement = () => {
   );
 };
 
-export default BookingManagement;
+export default BusManagement;
