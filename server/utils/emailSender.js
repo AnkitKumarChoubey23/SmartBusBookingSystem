@@ -6,7 +6,7 @@ const sendBookingEmail = async (
   pdfPath
 ) => {
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+   from: process.env.SENDER_EMAIL,
 
     to: booking.user.email,
 
@@ -38,8 +38,7 @@ const sendOTPEmail = async (
   otp
 ) => {
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-
+   from: process.env.SENDER_EMAIL,
     to: email,
 
     subject: "Password Reset OTP",
