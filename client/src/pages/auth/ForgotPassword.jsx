@@ -141,6 +141,13 @@ const ForgotPassword = () => {
                 ? "Sending..."
                 : "Send OTP"}
             </Button>
+            <Button
+  fullWidth
+  sx={{ mt: 2 }}
+  onClick={() => navigate("/login")}
+>
+  ← Back to Login
+</Button>
 
           </Box>
 

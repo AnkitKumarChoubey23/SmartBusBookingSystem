@@ -8,95 +8,117 @@ const headers = {
   "Content-Type": "application/json",
 };
 
+
+
 // Booking Confirmation Email
 const sendBookingEmail = async (booking, pdfPath) => {
-  const pdfBase64 = fs.readFileSync(pdfPath, {
-    encoding: "base64",
-  });
+  try {
+    const pdfBase64 = fs.readFileSync(pdfPath, {
+      encoding: "base64",
+    });
 
-  await axios.post(
-    API_URL,
-    {
-      sender: {
-        name: "Smart Bus Booking",
-        email: process.env.SENDER_EMAIL,
+    await axios.post(
+      API_URL,
+      {
+        sender: {
+          name: "Smart Bus Booking",
+          email: process.env.SENDER_EMAIL,
+        },
+
+        to: [
+          {
+            email: booking.user.email,
+            name: booking.user.name,
+          },
+        ],
+
+        subject: "Bus Ticket Confirmation",
+
+        htmlContent: `
+          <h2>Booking Confirmed</h2>
+
+          <p>Hello <b>${booking.user.name}</b>,</p>
+
+          <p>Your ticket is attached.</p>
+
+          <p>Thank you for choosing Smart Bus Booking.</p>
+        `,
+
+        attachment: [
+          {
+            name: "BusTicket.pdf",
+            content: pdfBase64,
+          },
+        ],
       },
+      {
+        headers,
+      }
+    );
 
-      to: [
-        {
-          email: booking.user.email,
-          name: booking.user.name,
-        },
-      ],
+    console.log("✅ Booking email sent successfully.");
+  } catch (err) {
+    console.error("❌ Booking Email Error");
 
-      subject: "Bus Ticket Confirmation",
+    console.error("Status:", err.response?.status);
+    console.error("Response:", err.response?.data);
+    console.error("Message:", err.message);
 
-      htmlContent: `
-        <h2>Booking Confirmed</h2>
-
-        <p>Hello <b>${booking.user.name}</b>,</p>
-
-        <p>Your ticket is attached.</p>
-
-        <p>Thank you for choosing Smart Bus Booking.</p>
-      `,
-
-      attachment: [
-        {
-          name: "BusTicket.pdf",
-          content: pdfBase64,
-        },
-      ],
-    },
-    {
-      headers,
-    }
-  );
+    throw err;
+  }
 };
 
 // Password Reset OTP Email
-const sendOTPEmail = async (
-  email,
-  firstName,
-  otp
-) => {
-  await axios.post(
-    API_URL,
-    {
-      sender: {
-        name: "Smart Bus Booking",
-        email: process.env.SENDER_EMAIL,
-      },
-
-      to: [
-        {
-          email,
-          name: firstName,
+const sendOTPEmail = async (email, firstName, otp) => {
+  try {
+    await axios.post(
+      API_URL,
+      {
+        sender: {
+          name: "Smart Bus Booking",
+          email: process.env.SENDER_EMAIL,
         },
-      ],
 
-      subject: "Password Reset OTP",
+        to: [
+          {
+            email,
+            name: firstName,
+          },
+        ],
 
-      htmlContent: `
-      <div style="font-family:Arial,sans-serif">
+        subject: "Password Reset OTP",
 
-      <h2>Hello ${firstName}</h2>
+        htmlContent: `
+          <div style="font-family:Arial,sans-serif">
 
-      <p>Your OTP is:</p>
+            <h2>Hello ${firstName}</h2>
 
-      <h1 style="color:#1976d2">${otp}</h1>
+            <p>Your OTP is:</p>
 
-      <p>This OTP is valid for 10 minutes.</p>
+            <h1 style="color:#1976d2">${otp}</h1>
 
-      <p>Smart Bus Booking System</p>
+            <p>This OTP is valid for 10 minutes.</p>
 
-      </div>
-      `,
-    },
-    {
-      headers,
-    }
-  );
+            <p>Smart Bus Booking System</p>
+
+          </div>
+        `,
+      },
+      {
+        headers,
+      }
+    );
+
+    console.log("✅ OTP email sent successfully.");
+  } catch (err) {
+    console.error("❌ OTP Email Error");
+
+    console.error("Status:", err.response?.status);
+    console.error("Response:", err.response?.data);
+    console.error("Message:", err.message);
+
+    throw err;
+  }
 };
 
 module.exports = {

@@ -46,20 +46,11 @@ const ResetPassword = () => {
   const [loading, setLoading] =
     useState(false);
 
-  useEffect(() => {
-    if (
-      !email ||
-      !flowStarted ||
-      !otpVerified
-    ) {
-      navigate("/forgot-password");
-    }
-  }, [
-    email,
-    flowStarted,
-    otpVerified,
-    navigate,
-  ]);
+ useEffect(() => {
+  if (!email || !flowStarted || !otpVerified) {
+    navigate("/forgot-password", { replace: true });
+  }
+}, []);
 
   const validatePassword = (
     password
@@ -95,31 +86,21 @@ const ResetPassword = () => {
     try {
       setLoading(true);
 
-      await resetPassword(
-        email,
-        newPassword
-      );
+     await resetPassword(email, newPassword);
 
-      // Cleanup
+toast.success(
+  "Password reset successfully. Please login."
+);
 
-      sessionStorage.removeItem(
-        "resetEmail"
-      );
+// Navigate first
+navigate("/login", { replace: true });
 
-      sessionStorage.removeItem(
-        "resetFlowStarted"
-      );
-
-      sessionStorage.removeItem(
-        "otpVerified"
-      );
-
-      toast.success(
-        "Password reset successfully. Please login."
-      );
-
-      navigate("/login");
-
+// Then clean up
+setTimeout(() => {
+  sessionStorage.removeItem("resetEmail");
+  sessionStorage.removeItem("resetFlowStarted");
+  sessionStorage.removeItem("otpVerified");
+}, 100);
     } catch (err) {
 
       console.error(err);
@@ -252,15 +233,17 @@ const ResetPassword = () => {
             </Button>
 
             <Button
-              fullWidth
-              sx={{ mt: 2 }}
-              onClick={() => {
-                sessionStorage.clear();
-                navigate("/login");
-              }}
-            >
-              Cancel
-            </Button>
+  fullWidth
+  sx={{ mt: 2 }}
+  onClick={() => {
+    sessionStorage.clear();
+    navigate("/login", {
+      replace: true,
+    });
+  }}
+>
+  ← Back to Login
+</Button>
 
           </Box>
         </Box>

@@ -218,6 +218,17 @@ const VerifyOTP = () => {
             >
               Change Email
             </Button>
+            <Button
+  fullWidth
+  sx={{ mt: 1 }}
+  color="inherit"
+  onClick={() => {
+    sessionStorage.clear();
+    navigate("/login");
+  }}
+>
+  ← Back to Login
+</Button>
           </Box>
         </Box>
       </Paper>
