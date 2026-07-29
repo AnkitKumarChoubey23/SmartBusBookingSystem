@@ -1,8 +1,10 @@
 const Booking = require("../models/Booking");
 const Schedule = require("../models/Schedule");
+
 const {
   sendBookingEmail,
 } = require("../utils/emailSender");
+
 const generateTicketPDF = require("../utils/pdfGenerator");
 
 exports.bookSeats = async (userId, data) => {
@@ -20,11 +22,15 @@ exports.bookSeats = async (userId, data) => {
     );
 
     if (!seat) {
-      throw new Error(`Seat ${seatNumber} not found`);
+      throw new Error(
+        `Seat ${seatNumber} not found`
+      );
     }
 
     if (seat.isBooked) {
-      throw new Error(`Seat ${seatNumber} already booked`);
+      throw new Error(
+        `Seat ${seatNumber} already booked`
+      );
     }
   }
 
@@ -43,44 +49,59 @@ exports.bookSeats = async (userId, data) => {
     user: userId,
     schedule: scheduleId,
     seats,
-    totalFare: schedule.fare * seats.length,
+    totalFare:
+      schedule.fare * seats.length,
     bookingStatus: "Confirmed",
     paymentStatus: "Paid",
- });
-
-const populatedBooking = await Booking.findById(booking._id)
-  .populate("user")
-  .populate({
-    path: "schedule",
-    populate: [
-      {
-        path: "bus",
-      },
-      {
-        path: "route",
-      },
-    ],
   });
 
-const pdfPath =
-  await generateTicketPDF(populatedBooking);
+  const populatedBooking =
+    await Booking.findById(
+      booking._id
+    )
+      .populate("user")
+      .populate({
+        path: "schedule",
+        populate: [
+          {
+            path: "bus",
+          },
+          {
+            path: "route",
+          },
+        ],
+      });
 
-try {
-  await sendBookingEmail(
-    populatedBooking,
-    pdfPath
-  );
-} catch (err) {
-  console.error(
-    "Booking email failed:",
-    err.message
-  );
-}
+  // Send email in background
+  process.nextTick(async () => {
+    try {
+      const pdfPath =
+        await generateTicketPDF(
+          populatedBooking
+        );
 
-return populatedBooking;
+      await sendBookingEmail(
+        populatedBooking,
+        pdfPath
+      );
+
+      console.log(
+        "✅ Booking email sent successfully."
+      );
+    } catch (err) {
+      console.error(
+        "❌ Booking email failed:"
+      );
+      console.error(err);
+    }
+  });
+
+  return populatedBooking;
 };
 
-// NEW METHODS
+// ==========================
+// USER BOOKINGS
+// ==========================
 
 exports.getMyBookings = (userId) =>
   Booking.find({ user: userId })
@@ -96,9 +117,13 @@ exports.getMyBookings = (userId) =>
       ],
     })
     .sort({ createdAt: -1 });
+
 exports.getBookingById = (bookingId) =>
   Booking.findById(bookingId)
-   .populate("user", "firstName lastName email")
+    .populate(
+      "user",
+      "firstName lastName email"
+    )
     .populate({
       path: "schedule",
       populate: [
@@ -113,7 +138,10 @@ exports.getBookingById = (bookingId) =>
 
 exports.getAllBookings = () =>
   Booking.find()
-   .populate("user", "firstName lastName email")
+    .populate(
+      "user",
+      "firstName lastName email"
+    )
     .populate({
       path: "schedule",
       populate: [
@@ -127,38 +155,62 @@ exports.getAllBookings = () =>
     })
     .sort({ createdAt: -1 });
 
-exports.cancelBooking = async (bookingId) => {
-  const booking = await Booking.findById(bookingId);
+// ==========================
+// CANCEL BOOKING
+// ==========================
 
-  if (!booking) {
-    throw new Error("Booking not found");
-  }
-
-  if (booking.bookingStatus === "Cancelled") {
-    throw new Error("Booking already cancelled");
-  }
-
-  const schedule = await Schedule.findById(booking.schedule);
-
-  booking.seats.forEach((seatNumber) => {
-    const seat = schedule.seats.find(
-      (s) => s.seatNumber === seatNumber
+exports.cancelBooking = async (
+  bookingId
+) => {
+  const booking =
+    await Booking.findById(
+      bookingId
     );
 
-    if (seat) {
-      seat.isBooked = false;
-      seat.bookedBy = null;
-    }
-  });
+  if (!booking) {
+    throw new Error(
+      "Booking not found"
+    );
+  }
 
-  schedule.availableSeats += booking.seats.length;
+  if (
+    booking.bookingStatus ===
+    "Cancelled"
+  ) {
+    throw new Error(
+      "Booking already cancelled"
+    );
+  }
+
+  const schedule =
+    await Schedule.findById(
+      booking.schedule
+    );
+
+  booking.seats.forEach(
+    (seatNumber) => {
+      const seat =
+        schedule.seats.find(
+          (s) =>
+            s.seatNumber === seatNumber
+        );
+
+      if (seat) {
+        seat.isBooked = false;
+        seat.bookedBy = null;
+      }
+    }
+  );
+
+  schedule.availableSeats +=
+    booking.seats.length;
 
   await schedule.save();
 
-  booking.bookingStatus = "Cancelled";
+  booking.bookingStatus =
+    "Cancelled";
 
   await booking.save();
 
   return booking;
 };
-
