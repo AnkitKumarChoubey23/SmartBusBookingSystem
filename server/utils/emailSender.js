@@ -1,29 +1,57 @@
-const transporter = require("../config/mail");
+const axios = require("axios");
+const fs = require("fs");
+
+const API_URL = "https://api.brevo.com/v3/smtp/email";
+
+const headers = {
+  "api-key": process.env.BREVO_API_KEY,
+  "Content-Type": "application/json",
+};
 
 // Booking Confirmation Email
-const sendBookingEmail = async (
-  booking,
-  pdfPath
-) => {
-  await transporter.sendMail({
-    from: process.env.SENDER_EMAIL,
-
-    to: booking.user.email,
-
-    subject: "Bus Ticket Confirmation",
-
-    html: `
-      <h2>Booking Confirmed</h2>
-
-      <p>Hello <b>${booking.user.name}</b>,</p>
-
-      <p>Your booking has been confirmed successfully.</p>
-
-      <p><b>This is a temporary test email without the PDF attachment.</b></p>
-
-      <p>Thank you for choosing Smart Bus Booking.</p>
-    `,
+const sendBookingEmail = async (booking, pdfPath) => {
+  const pdfBase64 = fs.readFileSync(pdfPath, {
+    encoding: "base64",
   });
+
+  await axios.post(
+    API_URL,
+    {
+      sender: {
+        name: "Smart Bus Booking",
+        email: process.env.SENDER_EMAIL,
+      },
+
+      to: [
+        {
+          email: booking.user.email,
+          name: booking.user.name,
+        },
+      ],
+
+      subject: "Bus Ticket Confirmation",
+
+      htmlContent: `
+        <h2>Booking Confirmed</h2>
+
+        <p>Hello <b>${booking.user.name}</b>,</p>
+
+        <p>Your ticket is attached.</p>
+
+        <p>Thank you for choosing Smart Bus Booking.</p>
+      `,
+
+      attachment: [
+        {
+          name: "BusTicket.pdf",
+          content: pdfBase64,
+        },
+      ],
+    },
+    {
+      headers,
+    }
+  );
 };
 
 // Password Reset OTP Email
@@ -32,57 +60,43 @@ const sendOTPEmail = async (
   firstName,
   otp
 ) => {
-  await transporter.sendMail({
-    from: process.env.SENDER_EMAIL,
+  await axios.post(
+    API_URL,
+    {
+      sender: {
+        name: "Smart Bus Booking",
+        email: process.env.SENDER_EMAIL,
+      },
 
-    to: email,
+      to: [
+        {
+          email,
+          name: firstName,
+        },
+      ],
 
-    subject: "Password Reset OTP",
+      subject: "Password Reset OTP",
 
-    html: `
-      <div
-        style="
-          font-family: Arial, sans-serif;
-          line-height:1.6;
-        "
-      >
-        <h2>Hello ${firstName},</h2>
+      htmlContent: `
+      <div style="font-family:Arial,sans-serif">
 
-        <p>
-          We received a request to reset your password.
-        </p>
+      <h2>Hello ${firstName}</h2>
 
-        <p>
-          Your One-Time Password (OTP) is:
-        </p>
+      <p>Your OTP is:</p>
 
-        <h1
-          style="
-            color:#1976d2;
-            letter-spacing:6px;
-          "
-        >
-          ${otp}
-        </h1>
+      <h1 style="color:#1976d2">${otp}</h1>
 
-        <p>
-          This OTP is valid for
-          <strong>10 minutes</strong>.
-        </p>
+      <p>This OTP is valid for 10 minutes.</p>
 
-        <p>
-          If you did not request this request,
-          please ignore this email.
-        </p>
+      <p>Smart Bus Booking System</p>
 
-        <br>
-
-        <p>
-          Smart Bus Booking System
-        </p>
       </div>
-    `,
-  });
+      `,
+    },
+    {
+      headers,
+    }
+  );
 };
 
 module.exports = {
