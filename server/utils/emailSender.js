@@ -6,7 +6,7 @@ const sendBookingEmail = async (
   pdfPath
 ) => {
   await transporter.sendMail({
-   from: process.env.SENDER_EMAIL,
+    from: process.env.SENDER_EMAIL,
 
     to: booking.user.email,
 
@@ -17,17 +17,12 @@ const sendBookingEmail = async (
 
       <p>Hello <b>${booking.user.name}</b>,</p>
 
-      <p>Your ticket is attached.</p>
+      <p>Your booking has been confirmed successfully.</p>
+
+      <p><b>This is a temporary test email without the PDF attachment.</b></p>
 
       <p>Thank you for choosing Smart Bus Booking.</p>
     `,
-
-    attachments: [
-      {
-        filename: "BusTicket.pdf",
-        path: pdfPath,
-      },
-    ],
   });
 };
 
@@ -38,7 +33,8 @@ const sendOTPEmail = async (
   otp
 ) => {
   await transporter.sendMail({
-   from: process.env.SENDER_EMAIL,
+    from: process.env.SENDER_EMAIL,
+
     to: email,
 
     subject: "Password Reset OTP",
@@ -50,7 +46,6 @@ const sendOTPEmail = async (
           line-height:1.6;
         "
       >
-
         <h2>Hello ${firstName},</h2>
 
         <p>
@@ -85,7 +80,6 @@ const sendOTPEmail = async (
         <p>
           Smart Bus Booking System
         </p>
-
       </div>
     `,
   });
